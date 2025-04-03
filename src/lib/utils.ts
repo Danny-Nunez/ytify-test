@@ -47,13 +47,28 @@ export const i18n = (
 export function proxyHandler(url: string) {
   store.api.index = 0;
   title.textContent = i18n('player_audiostreams_insert');
-  const link = new URL(url);
-  const origin = link.origin.slice(8);
-  const host = link.searchParams.get('host');
-
-  return getSaved('enforceProxy') ?
-    (url + (host ? '' : `&host=${origin}`)) :
-    (host && !getSaved('custom_instance')) ? url.replace(origin, host) : url;
+  
+  // Use our local proxy for all audio streams
+  if (url.startsWith('http')) {
+    const urlObj = new URL(url);
+    // Extract the host from the URL
+    const host = urlObj.hostname;
+    
+    // Check if this is a YouTube URL
+    if (host.includes('googlevideo.com')) {
+      // For YouTube URLs, we need to use a different approach
+      // We'll use the Invidious API to get the stream
+      return url;
+    } else if (host.includes('ytify.netlify.app') || host.includes('ytify.pp.ua')) {
+      // For ytify URLs, use our ytify proxy
+      return `/ytify${urlObj.pathname}${urlObj.search}`;
+    } else {
+      // For other URLs, use our audio proxy
+      return `/audio${urlObj.pathname}${urlObj.search}&host=${host}`;
+    }
+  }
+  
+  return url;
 }
 
 export async function quickSwitch() {
@@ -115,10 +130,15 @@ export async function getDownloadLink(id: string): Promise<string | null> {
     })
   })
     .then(_ => _.json())
-    .then(_ => {
-      if ('url' in _)
-        return _.url;
-      else throw new Error(_.error.code);
+    .then(async (response) => {
+      if (response.status === 'tunnel' && response.url) {
+        // Follow the tunnel URL to get the actual audio stream
+        const audioResponse = await fetch(response.url);
+        if (audioResponse.ok) {
+          return response.url;
+        }
+      }
+      throw new Error('Failed to get audio stream');
     })
     .catch(notify);
 

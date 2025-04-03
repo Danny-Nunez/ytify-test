@@ -100,6 +100,30 @@ export default defineConfig(({ command }) => ({
         //  postcssJitProps(OpenProps)
       ]
     }
+  },
+  server: {
+    proxy: {
+      '/invidious': {
+        target: 'https://inv.stealthy.club',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/invidious/, '/api/v1')
+      },
+      '/piped': {
+        target: 'https://pipedapi.kavin.rocks',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/piped/, '')
+      },
+      '/audio': {
+        target: 'https://inv.stealthy.club',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/audio/, '')
+      },
+      '/ytify': {
+        target: 'https://ytify.netlify.app',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/ytify/, '')
+      }
+    }
   }
 }));
 
