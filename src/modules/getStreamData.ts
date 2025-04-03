@@ -1,5 +1,4 @@
 import { store } from "../lib/store";
-import { getApi } from '../lib/utils';
 
 export interface AudioStream {
   url: string;
@@ -29,9 +28,7 @@ export default async function(
   const { invidious, piped } = store.api;
   const { hls, fallback } = store.player;
 
-  const fetchDataFromPiped = (
-    api: string
-  ) => fetch(`/piped/streams/${id}`)
+  const fetchDataFromPiped = () => fetch(`/piped/streams/${id}`)
     .then(res => res.json())
     .then(data => {
       if (hls.on ? data.hls : data.audioStreams.length)
@@ -50,9 +47,7 @@ export default async function(
       return data;
     });
 
-  const fetchDataFromInvidious = (
-    api: string
-  ) => fetch(`/invidious/videos/${id}`)
+  const fetchDataFromInvidious = () => fetch(`/invidious/videos/${id}`)
     .then(res => res.json())
     .then(data => {
       if (data && 'adaptiveFormats' in data)
@@ -130,17 +125,17 @@ export default async function(
 
   const emergency = (e: Error) =>
     (!prefetch && fallback) ?
-      fetchDataFromPiped(fallback)
+      fetchDataFromPiped()
         .catch(() => e) : e;
 
-  const useInvidious = (index = 0): Promise<Piped> => fetchDataFromInvidious(invidious[index])
+  const useInvidious = (index = 0): Promise<Piped> => fetchDataFromInvidious()
     .catch(e => {
       if (index + 1 === invidious.length)
         return emergency(e);
       else return useInvidious(index + 1);
     });
 
-  const usePiped = (index = 0): Promise<Piped> => fetchDataFromPiped(piped[index])
+  const usePiped = (index = 0): Promise<Piped> => fetchDataFromPiped()
     .catch(() => {
       if (index + 1 === piped.length)
         return useInvidious();
@@ -153,7 +148,7 @@ export default async function(
     });
 
   const useHls = () => Promise
-    .allSettled((hls.api.length ? hls.api : piped).map(fetchDataFromPiped))
+    .allSettled((hls.api.length ? hls.api : piped).map(() => fetchDataFromPiped()))
     .then(res => {
       const ff = res.filter(r => r.status === 'fulfilled');
       hls.manifests.length = 0;
