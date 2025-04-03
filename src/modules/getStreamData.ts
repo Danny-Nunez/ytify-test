@@ -105,6 +105,9 @@ export default async function(
     return fetch(url)
       .then(res => {
         console.log('ytify.netlify.app response status:', res.status);
+        if (!res.ok) {
+          throw new Error(`HTTP error! status: ${res.status}`);
+        }
         return res.json();
       })
       .then(data => {
@@ -143,7 +146,8 @@ export default async function(
     });
 
   const useYtify = (): Promise<Piped> => fetchDataFromYtify()
-    .catch(() => {
+    .catch(error => {
+      console.error('Failed to use ytify.netlify.app API, falling back to Piped:', error);
       return usePiped();
     });
 
