@@ -1,4 +1,4 @@
-export default async (request: Request) => {
+export default async () => {
   return new Response('Test edge function working', {
     status: 200,
     headers: {

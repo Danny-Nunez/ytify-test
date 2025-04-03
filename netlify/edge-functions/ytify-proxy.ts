@@ -1,17 +1,17 @@
 export default async (request: Request) => {
-  const url = new URL(request.url);
-  const path = url.pathname;
-  
-  // Extract the video ID from the path
-  const match = path.match(/\/ytify\/streams\/([^\/]+)/);
-  if (!match) {
-    return new Response('Invalid path', { status: 400 });
-  }
-  
-  const videoId = match[1];
-  const targetUrl = `https://ytify.netlify.app/streams/${videoId}`;
-  
   try {
+    const url = new URL(request.url);
+    const path = url.pathname;
+    
+    // Extract the video ID from the path
+    const match = path.match(/\/ytify\/streams\/([^\/]+)/);
+    if (!match) {
+      return new Response('Invalid path', { status: 400 });
+    }
+    
+    const videoId = match[1];
+    const targetUrl = `https://ytify.netlify.app/streams/${videoId}`;
+    
     const response = await fetch(targetUrl);
     
     // Clone the response to modify headers
