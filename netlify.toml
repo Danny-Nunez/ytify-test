@@ -2,6 +2,15 @@
   command = "npm run build"
   publish = "dist"
   functions = "netlify/functions"
+  edge_functions = "netlify/edge-functions"
+
+[[edge_functions]]
+  path = "/ytify/streams/*"
+  function = "ytify-proxy"
+
+[[edge_functions]]
+  path = "/test"
+  function = "test"
 
 [[redirects]]
   from = "/ytify/streams/*"

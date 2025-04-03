@@ -102,7 +102,11 @@ export default async function(
     // Make sure we're using the correct URL format
     const url = `/ytify/streams/${id}`;
     console.log('Fetching from URL:', url);
-    return fetch(url)
+    return fetch(url, {
+      headers: {
+        'Accept': 'application/json'
+      }
+    })
       .then(res => {
         console.log('ytify.netlify.app response status:', res.status);
         if (!res.ok) {
@@ -131,7 +135,11 @@ export default async function(
     console.log('Attempting to fetch data directly from ytify.netlify.app for video ID:', id);
     const url = `https://ytify.netlify.app/streams/${id}`;
     console.log('Fetching directly from URL:', url);
-    return fetch(url)
+    return fetch(url, {
+      headers: {
+        'Accept': 'application/json'
+      }
+    })
       .then(res => {
         console.log('Direct ytify.netlify.app response status:', res.status);
         if (!res.ok) {
