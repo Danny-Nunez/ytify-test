@@ -1,6 +1,4 @@
-import { Context } from '@netlify/edge-functions';
-
-export default async (request: Request, context: Context) => {
+export default async (request: Request) => {
   const url = new URL(request.url);
   const path = url.pathname;
   

@@ -7,6 +7,13 @@
   from = "/ytify/streams/*"
   to = "/.netlify/edge-functions/ytify-proxy"
   status = 200
+  force = true
+
+[[redirects]]
+  from = "/test"
+  to = "/.netlify/edge-functions/test"
+  status = 200
+  force = true
 
 [[redirects]]
   from = "/*"

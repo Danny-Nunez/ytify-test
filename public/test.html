@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Edge Function Test</title>
+</head>
+<body>
+  <h1>Edge Function Test</h1>
+  <p>This page tests if the edge functions are working correctly.</p>
+  <div id="result">Loading...</div>
+
+  <script>
+    fetch('/test')
+      .then(response => response.text())
+      .then(text => {
+        document.getElementById('result').textContent = text;
+      })
+      .catch(error => {
+        document.getElementById('result').textContent = 'Error: ' + error.message;
+      });
+  </script>
+</body>
+</html> 

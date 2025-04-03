@@ -126,6 +126,35 @@ export default async function(
       });
   };
 
+  // Direct fallback to ytify.netlify.app API
+  const fetchDataFromYtifyDirect = () => {
+    console.log('Attempting to fetch data directly from ytify.netlify.app for video ID:', id);
+    const url = `https://ytify.netlify.app/streams/${id}`;
+    console.log('Fetching directly from URL:', url);
+    return fetch(url)
+      .then(res => {
+        console.log('Direct ytify.netlify.app response status:', res.status);
+        if (!res.ok) {
+          throw new Error(`HTTP error! status: ${res.status}`);
+        }
+        return res.json();
+      })
+      .then(data => {
+        console.log('Direct ytify.netlify.app response data:', data);
+        if (data && data.audioStreams && data.audioStreams.length > 0) {
+          // Sort audio streams by bitrate (highest first)
+          data.audioStreams.sort((a: AudioStream, b: AudioStream) => b.bitrate - a.bitrate);
+          return data;
+        } else {
+          throw new Error('No audio streams found in Ytify response');
+        }
+      })
+      .catch(error => {
+        console.error('Error fetching directly from ytify.netlify.app:', error);
+        throw error;
+      });
+  };
+
   const emergency = (e: Error) =>
     (!prefetch && fallback) ?
       fetchDataFromPiped()
@@ -147,8 +176,12 @@ export default async function(
 
   const useYtify = (): Promise<Piped> => fetchDataFromYtify()
     .catch(error => {
-      console.error('Failed to use ytify.netlify.app API, falling back to Piped:', error);
-      return usePiped();
+      console.error('Failed to use ytify.netlify.app API, trying direct access:', error);
+      return fetchDataFromYtifyDirect()
+        .catch(error => {
+          console.error('Failed to use direct ytify.netlify.app API, falling back to Piped:', error);
+          return usePiped();
+        });
     });
 
   const useHls = () => Promise
@@ -174,7 +207,12 @@ export default async function(
     const forceYtify = true; // Set to true to force using ytify.netlify.app
     if (forceYtify) {
       console.log('Forcing use of ytify.netlify.app API');
-      return useYtify();
+      try {
+        return await useYtify();
+      } catch (error) {
+        console.error('Failed to use ytify.netlify.app API, falling back to Piped:', error);
+        return usePiped();
+      }
     }
     
     return hls.on ? useHls() : store.player.usePiped ? useYtify() : useInvidious();
